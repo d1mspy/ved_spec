@@ -1,7 +1,7 @@
 import pygame
 import math
 import random
-from persistent.const import *
+from bond_007.persistent.game.const import *
 
 # Класс игрока
 class Player :

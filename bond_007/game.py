@@ -1,6 +1,6 @@
 import pygame
-from persistent.const import *
-from persistent.game_class import Player, Enemy, Bullet, Ammo
+from bond_007.persistent.game.const import *
+from bond_007.persistent.game.game_class import Player, Enemy, Bullet, Ammo
 
 # Основная игра
 class Game:
