@@ -1,2 +1,6 @@
 
 .vscode/settings.json
+
+/__pycache__
+
+bond_007/sqlite.db

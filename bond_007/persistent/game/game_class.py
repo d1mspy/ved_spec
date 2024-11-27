@@ -75,4 +75,3 @@ class Bullet :
 class Ammo :
     def __init__(self) :
         self.rect = pygame.Rect ( random.randint ( 0 , WIDTH - 20 ) , random.randint ( 0 , HEIGHT - 20 ) , 20 , 20 )
-

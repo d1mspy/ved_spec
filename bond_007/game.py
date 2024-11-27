@@ -1,6 +1,9 @@
 import pygame
 from persistent.game.const import *
 from persistent.game.game_class import Player, Enemy, Bullet, Ammo
+from infrastructure.db.interaction import ScoreRepository
+
+score = ScoreRepository()
 
 # Основная игра
 class Game :
@@ -17,6 +20,7 @@ class Game :
         self.score = 0
         self.enemy_count = INITIAL_ENEMY_COUNT  # Текущее количество врагов
         self.running = True
+        self.score_is_writed = False
 
         # Инициализация и воспроизведение музыки
         pygame.mixer.init ( )
@@ -25,6 +29,10 @@ class Game :
 
         self.enemy_spawn_timer = pygame.time.get_ticks ( )
         self.ammo_spawn_timer = pygame.time.get_ticks ( )
+
+    def game_over(self) -> None:
+        print ("Game Over! Final Score:", self.score)
+        self.running = False
 
     def run(self) :
         while self.running :
@@ -81,9 +89,8 @@ class Game :
             enemy.move ( self.player )
             if enemy.rect.colliderect ( self.player.rect ) :
                 self.player.health -= ENEMY_HIT_DAMAGE
-                if self.player.health <= 0 :
-                    print ( "Game Over! Final Score:" , self.score )
-                    self.running = False
+                if self.player.health <= 0:
+                    self.game_over()
 
             # Стрельба врагов
             current_time = pygame.time.get_ticks ( )
@@ -104,9 +111,7 @@ class Game :
                 self.player.health -= BULLET_HIT_DAMAGE
                 self.enemy_bullets.remove ( enemy_bullet )
                 if self.player.health <= 0 :
-                    print ( "Game Over! Final Score:" , self.score )
-                    self.running = False
-
+                    self.game_over()
         # Спавн врагов
         current_time = pygame.time.get_ticks ( )
         if len ( self.enemies ) < self.enemy_count :
