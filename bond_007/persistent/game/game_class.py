@@ -1,7 +1,7 @@
 import pygame
 import math
 import random
-from bond_007.persistent.game.const import *
+from persistent.game.const import *
 
 # Класс игрока
 class Player :
@@ -24,11 +24,11 @@ class Player :
 # Класс врага
 class Enemy :
     def __init__(self) :
-        self.rect = pygame.Rect (random.randint ( 0 , WIDTH - 35 ) , random.randint ( 0 , HEIGHT - 35 ) , 35 , 35 )
-        self.health = MAX_HEALTH
+        self.rect = pygame.Rect ( random.randint ( 0 , WIDTH - 35 ) , random.randint ( 0 , HEIGHT - 35 ) , 35 , 35 )
+        self.health = HITS_TO_KILL_ENEMY  # Количество попаданий для уничтожения врага
         self.last_shot_time = 0
 
-    def move(self, player) :
+    def move(self , player) :
         if self.rect.x < player.rect.x :
             self.rect.x += ENEMY_SPEED
         elif self.rect.x > player.rect.x :
@@ -38,11 +38,25 @@ class Enemy :
         elif self.rect.y > player.rect.y :
             self.rect.y -= ENEMY_SPEED
 
-    def shoot(self) :
-        return Bullet ((self.rect.centerx, self.rect.centery), self.get_direction())
+    def shoot(self , player) :
+        return Bullet ( (self.rect.centerx , self.rect.centery) , self.get_direction ( player ) )
 
-    def get_direction(self) :
-        return (self.rect.x - WIDTH // 2 , self.rect.y - HEIGHT // 2)
+    def get_direction(self , player) :
+        direction = (player.rect.centerx - self.rect.centerx , player.rect.centery - self.rect.centery)
+        return direction
+
+    def draw_health(self , screen) :
+        # Полоса здоровья врага
+        health_bar_width = 30
+        health_bar_height = 5
+        health_bar_pos = (self.rect.x , self.rect.y - 10)
+        health_percentage = self.health / HITS_TO_KILL_ENEMY
+        health_color = GREEN if self.health > 0 else RED
+        pygame.draw.rect ( screen , RED , (
+        health_bar_pos[0] , health_bar_pos[1] , health_bar_width , health_bar_height) )  # Фон полосы здоровья
+        pygame.draw.rect ( screen , health_color , (
+        health_bar_pos[0] , health_bar_pos[1] , health_bar_width * health_percentage ,
+        health_bar_height) )  # Полоса здоровья
 
 
 # Класс пули
@@ -61,3 +75,4 @@ class Bullet :
 class Ammo :
     def __init__(self) :
         self.rect = pygame.Rect ( random.randint ( 0 , WIDTH - 20 ) , random.randint ( 0 , HEIGHT - 20 ) , 20 , 20 )
+

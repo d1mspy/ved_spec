@@ -5,12 +5,12 @@ ENEMY_SPEED = 2
 BULLET_SPEED = 10
 MAX_HEALTH = 100
 INITIAL_BULLETS = 200
-ENEMY_SPAWN_RATE = 3000  # миллисекунды
 ENEMY_HIT_DAMAGE = 10
 BULLET_HIT_DAMAGE = 10
 AMMO_SPAWN_RATE = 20000  # 20 секунд
-ENEMY_COUNT_PER_WAVE = 3
-WAVE_DELAY = 7000  # 7 секунд между волнами
+INITIAL_ENEMY_COUNT = 7  # Начальное количество врагов
+ENEMY_INCREASE_PER_WAVE = 2  # Увеличение врагов за волну
+HITS_TO_KILL_ENEMY = 4  # Количество попаданий для уничтожения врага
 
 # Цвета
 BLACK = (0 , 0 , 0)

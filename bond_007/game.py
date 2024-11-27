@@ -1,24 +1,30 @@
 import pygame
-from bond_007.persistent.game.const import *
-from bond_007.persistent.game.game_class import Player, Enemy, Bullet, Ammo
+from persistent.game.const import *
+from persistent.game.game_class import Player, Enemy, Bullet, Ammo
 
 # Основная игра
-class Game:
+class Game :
     def __init__(self) :
-        pygame.init()
-        self.screen = pygame.display.set_mode((WIDTH , HEIGHT))
-        pygame.display.set_caption("Shooter Game")
-        self.clock = pygame.time.Clock()
-        self.player = Player()
+        pygame.init ( )
+        self.screen = pygame.display.set_mode ( (WIDTH , HEIGHT) )
+        pygame.display.set_caption ( "Shooter Game" )
+        self.clock = pygame.time.Clock ( )
+        self.player = Player ( )
         self.enemies = []
         self.bullets = []
         self.ammo = []
+        self.enemy_bullets = []
         self.score = 0
+        self.enemy_count = INITIAL_ENEMY_COUNT  # Текущее количество врагов
+        self.running = True
+
+        # Инициализация и воспроизведение музыки
+        pygame.mixer.init ( )
+        pygame.mixer.music.load ( 'FUNKA_JANA.mp3' )  # Замените "FUNKA_JANA.mp3" на имя вашего файла
+        pygame.mixer.music.play ( -1 )
+
         self.enemy_spawn_timer = pygame.time.get_ticks ( )
         self.ammo_spawn_timer = pygame.time.get_ticks ( )
-        self.wave_time = pygame.time.get_ticks ( )
-        self.spawn_delay = ENEMY_SPAWN_RATE
-        self.running = True
 
     def run(self) :
         while self.running :
@@ -33,41 +39,44 @@ class Game:
                 self.running = False
 
         keys = pygame.key.get_pressed ( )
-        if keys[pygame.K_UP] :
+        if keys[pygame.K_w] or keys[pygame.K_UP] :
             self.player.move ( 'UP' )
-        if keys[pygame.K_DOWN] :
+        if keys[pygame.K_s] or keys[pygame.K_DOWN] :
             self.player.move ( 'DOWN' )
-        if keys[pygame.K_LEFT] :
+        if keys[pygame.K_a] or keys[pygame.K_LEFT] :
             self.player.move ( 'LEFT' )
-        if keys[pygame.K_RIGHT] :
+        if keys[pygame.K_d] or keys[pygame.K_RIGHT] :
             self.player.move ( 'RIGHT' )
-        if keys[pygame.K_SPACE] and self.player.bullets > 0 :
-            mouse_x , mouse_y = pygame.mouse.get_pos ( )
-            bullet_start_pos = (self.player.rect.centerx , self.player.rect.top)
-            direction = (mouse_x - bullet_start_pos[0] , mouse_y - bullet_start_pos[1])
-            bullet = Bullet ( bullet_start_pos , direction )
-            self.bullets.append ( bullet )
-            self.player.bullets -= 1
+
+        if pygame.mouse.get_pressed ( )[0] :
+            if self.player.bullets > 0 :
+                mouse_x , mouse_y = pygame.mouse.get_pos ( )
+                bullet_start_pos = (self.player.rect.centerx , self.player.rect.top)
+                direction = (mouse_x - bullet_start_pos[0] , mouse_y - bullet_start_pos[1])
+                bullet = Bullet ( bullet_start_pos , direction )
+                self.bullets.append ( bullet )
+                self.player.bullets -= 1
 
     def update(self) :
-        # Обновление пуль
+        # Обновление пуль игрока
         for bullet in self.bullets[:] :
             bullet.move ( )
-            if bullet.rect.bottom < 0 or bullet.rect.left < 0 or bullet.rect.right > WIDTH or bullet.rect.top > HEIGHT :
+            if (bullet.rect.bottom < 0 or bullet.rect.left < 0 or
+                    bullet.rect.right > WIDTH or bullet.rect.top > HEIGHT) :
                 self.bullets.remove ( bullet )
 
         # Проверка на столкновения пуль с врагами
         for bullet in self.bullets[:] :
             for enemy in self.enemies[:] :
                 if bullet.rect.colliderect ( enemy.rect ) :
-                    enemy.health -= BULLET_HIT_DAMAGE
+                    enemy.health -= 1  # Уменьшаем здоровье врага (1 попадание)
                     self.bullets.remove ( bullet )
                     if enemy.health <= 0 :
                         self.enemies.remove ( enemy )
                         self.score += 1
                     break
 
-        # Движение врагов
+        # Движение врагов и стрельба
         for enemy in self.enemies :
             enemy.move ( self.player )
             if enemy.rect.colliderect ( self.player.rect ) :
@@ -79,21 +88,36 @@ class Game:
             # Стрельба врагов
             current_time = pygame.time.get_ticks ( )
             if current_time - enemy.last_shot_time > 2000 :  # Враги стреляют каждые 2 секунды
-                bullet = enemy.shoot ( )
-                self.bullets.append ( bullet )
+                bullet = enemy.shoot ( self.player )  # Передаем игрока для корректного направления пули
+                self.enemy_bullets.append ( bullet )
                 enemy.last_shot_time = current_time
+
+        # Обновление пуль от врагов
+        for enemy_bullet in self.enemy_bullets[:] :
+            enemy_bullet.move ( )
+            if (enemy_bullet.rect.bottom < 0 or enemy_bullet.rect.left < 0 or
+                    enemy_bullet.rect.right > WIDTH or enemy_bullet.rect.top > HEIGHT) :
+                self.enemy_bullets.remove ( enemy_bullet )
+
+            # Проверка на столкновение пули врага с игроком
+            if enemy_bullet.rect.colliderect ( self.player.rect ) :
+                self.player.health -= BULLET_HIT_DAMAGE
+                self.enemy_bullets.remove ( enemy_bullet )
+                if self.player.health <= 0 :
+                    print ( "Game Over! Final Score:" , self.score )
+                    self.running = False
 
         # Спавн врагов
         current_time = pygame.time.get_ticks ( )
-        if current_time - self.enemy_spawn_timer > self.spawn_delay :
-            for _ in range ( ENEMY_COUNT_PER_WAVE ) :
+        if len ( self.enemies ) < self.enemy_count :
+            if current_time - self.enemy_spawn_timer > 1000 :  # Спавн врагов каждые 1 секунду
                 self.enemies.append ( Enemy ( ) )
-            self.enemy_spawn_timer = current_time
+                self.enemy_spawn_timer = current_time
 
-        # Проверка волны врагов
-        if current_time - self.wave_time > WAVE_DELAY :
-            self.enemy_spawn_timer = current_time
-            self.spawn_delay -= 1  # Уменьшаем интервал спавна врагов после каждой волны
+        # Проверка на конец волны
+        if len ( self.enemies ) == 0 and self.enemy_count > 0 :
+            self.enemy_count += ENEMY_INCREASE_PER_WAVE  # Увеличиваем количество врагов
+            print ( f"Next wave! Total enemies: {self.enemy_count}" )
 
         # Спавн патронов
         if current_time - self.ammo_spawn_timer > AMMO_SPAWN_RATE :
@@ -103,23 +127,21 @@ class Game:
         # Проверка на столкновения патронов с игроком
         for ammo in self.ammo[:] :
             if ammo.rect.colliderect ( self.player.rect ) :
-                self.player.bullets += 10  # игрок получает 10 патронов
-                self.ammo.remove ( ammo )
-
-        # Проверка выхода патронов за границы
-        for ammo in self.ammo[:] :
-            if ammo.rect.left < 0 or ammo.rect.right > WIDTH or ammo.rect.top < 0 or ammo.rect.bottom > HEIGHT :
+                self.player.bullets += 10  # Игрок получает 10 патронов
                 self.ammo.remove ( ammo )
 
     def render(self) :
         self.screen.fill ( WHITE )
-        pygame.draw.rect ( self.screen , GREEN , self.player.rect )
+        pygame.draw.rect ( self.screen , GREEN , self.player.rect )  # Игрок
         for enemy in self.enemies :
-            pygame.draw.rect ( self.screen , RED , enemy.rect )
+            pygame.draw.rect ( self.screen , RED , enemy.rect )  # Враги
+            enemy.draw_health ( self.screen )  # Рисуем здоровье врага
         for bullet in self.bullets :
-            pygame.draw.rect ( self.screen , BLUE , bullet.rect )
+            pygame.draw.rect ( self.screen , BLUE , bullet.rect )  # Пули игрока
         for ammo in self.ammo :
-            pygame.draw.rect ( self.screen , (255 , 215 , 0) , ammo.rect )  # Золотистый цвет для патронов
+            pygame.draw.rect ( self.screen , (255 , 215 , 0) , ammo.rect )  # Патроны
+        for enemy_bullet in self.enemy_bullets :  # Рисуем пули от врагов
+            pygame.draw.rect ( self.screen , (255 , 0 , 255) , enemy_bullet.rect )  # Пули будут фиолетовыми
 
         # Отображение очков и здоровья
         font = pygame.font.SysFont ( None , 36 )
