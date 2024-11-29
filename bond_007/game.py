@@ -68,6 +68,7 @@ class Game:
                 bullet = Bullet(bullet_start_pos, direction)
                 self.bullets.append(bullet)
                 self.player.bullets -= 1
+                
 
     def update(self):
         # Обновление пуль игрока
@@ -137,7 +138,7 @@ class Game:
         # Проверка на столкновения патронов с игроком
         for ammo in self.ammo[:]:
             if ammo.rect.colliderect(self.player.rect):
-                self.player.bullets += 10  # Игрок получает 10 патронов
+                self.player.bullets += 100  # Игрок получает 10 патронов
                 self.ammo.remove(ammo)
 
     def render(self):
