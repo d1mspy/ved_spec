@@ -1,9 +1,8 @@
 import pygame
-from persistent.game.const import *
-from persistent.game.game_class import Player, Enemy, Bullet, Ammo
-from infrastructure.db.interaction import ScoreRepository
+from persistent.const import *
+from persistent.game_class import Player, Enemy, Bullet, Ammo
+from db.connect import save_score
 
-score = ScoreRepository()
 
 # Основная игра
 
@@ -32,8 +31,10 @@ class Game:
         self.enemy_spawn_timer = pygame.time.get_ticks()
         self.ammo_spawn_timer = pygame.time.get_ticks()
 
+    # конец игры и запись очков в бд
     def game_over(self) -> None:
         print("Game Over! Final Score:", self.score)
+        save_score(self.score)
         self.running = False
 
     def run(self):
