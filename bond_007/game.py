@@ -12,6 +12,9 @@ class Game:
         pygame.init()
         
         self.running = True
+        self.game_over = False
+        self.score_is_writed = False
+        self.paused = False
         
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption("Shooter Game")
@@ -58,7 +61,6 @@ class Game:
         save_score(self.score)
         self.running = False
 
-
     # увеличение размера врагов по мере продвижения
     def increase_enemy_size(self) -> None:
         current_time = pygame.time.get_ticks()
@@ -69,20 +71,24 @@ class Game:
     
     
     # запуск
-    def run(self) -> None:
+     def run(self) -> None:
         while self.running:
+            self.increase_enemy_size( )
             self.handle_events()
-            self.update()
+            if not self.paused:
+                self.update()
             self.render()
             self.clock.tick(60)
-            self.increase_enemy_size()
     
     
     # нажатие клавиш
     def handle_events(self) -> None:
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.running = False
+            if event.type==pygame.QUIT:
+                self.running=False
+            if event.type==pygame.KEYDOWN:
+                if event.key == pygame.K_k:
+                    self.paused = not self.paused
 
         # Движение игрока (стрелки или WASD)
         keys = pygame.key.get_pressed()
