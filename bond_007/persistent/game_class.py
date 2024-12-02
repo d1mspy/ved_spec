@@ -24,10 +24,13 @@ class Player:
 
 # Класс врага
 class Enemy:
+    increasing = 0
+    size = 30
+    
     def __init__(self):
         self.rect = pygame.Rect(random.randint(
-            0, WIDTH - 35), random.randint(0, HEIGHT - 35), 35, 35)
-        self.health = HITS_TO_KILL_ENEMY  # Количество попаданий для уничтожения врага
+            0, WIDTH - self.size - 5*self.increasing), random.randint(0, HEIGHT - self.size - 5*self.increasing), self.size+5*self.increasing, self.size+5*self.increasing)
+        self.health = HITS_TO_KILL_ENEMY + self.increasing  # Количество попаданий для уничтожения врага
         self.last_shot_time = 0
 
     def move(self, player):

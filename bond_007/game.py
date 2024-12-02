@@ -10,26 +10,46 @@ from db.connect import save_score
 class Game:
     def __init__(self):
         pygame.init()
+        
+        self.running = True
+        
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption("Shooter Game")
         self.clock = pygame.time.Clock()
+        
+        # игрок и очки
         self.player = Player()
+        self.score = 0
+        
+        # списки для врагов, патронов и пуль
         self.enemies = []
         self.bullets = []
         self.ammo = []
         self.enemy_bullets = []
-        self.score = 0
-        self.enemy_count = INITIAL_ENEMY_COUNT  # Текущее количество врагов
-        self.running = True
-        self.score_is_writed = False
+
+        self.enemy_count = INITIAL_ENEMY_COUNT # количество врагов на текущую волну
+        self.current_enemies = INITIAL_ENEMY_COUNT # атрибут для подсчета уже заспавненных врагов в рамках текущей волны
+        
+        # атрибут для смены волн
+        self.last_increase_time = 0
+        
+        # атрибуты для увеличения размера и здоровья врагов
+        self.increase_interval = 5000 
+        self.last_wave_increasing = 0
+        
+        # булевые атрибуты для реализации стрельбы и спавна врагов
+        self.shoot_enabled = False
+        self.spawn_enabled = True
 
         # Инициализация и воспроизведение музыки
         pygame.mixer.init()
         pygame.mixer.music.load('FUNKA_JANA.mp3')
         pygame.mixer.music.play(-1)
 
+        # Таймер для спавна врагов и патронов
         self.enemy_spawn_timer = pygame.time.get_ticks()
         self.ammo_spawn_timer = pygame.time.get_ticks()
+
 
     # конец игры и запись очков в бд
     def game_over(self) -> None:
@@ -37,18 +57,34 @@ class Game:
         save_score(self.score)
         self.running = False
 
-    def run(self):
+
+    # увеличение размера врагов по мере продвижения
+    def increase_enemy_size(self) -> None:
+        current_time = pygame.time.get_ticks()
+        if current_time - self.last_increase_time > self.increase_interval:
+            for enemy in self.enemies:
+                enemy.increasing += 1
+            self.last_increase_time = current_time
+            print("size increased")
+    
+    
+    # запуск
+    def run(self) -> None:
         while self.running:
             self.handle_events()
             self.update()
             self.render()
             self.clock.tick(60)
-
-    def handle_events(self):
+            self.increase_enemy_size()
+    
+    
+    # нажатие клавиш
+    def handle_events(self) -> None:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
 
+        # Движение игрока (стрелки или WASD)
         keys = pygame.key.get_pressed()
         if keys[pygame.K_w] or keys[pygame.K_UP]:
             self.player.move('UP')
@@ -59,19 +95,30 @@ class Game:
         if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
             self.player.move('RIGHT')
 
+        # Стрельба
         if pygame.mouse.get_pressed()[0]:
-            if self.player.bullets > 0:
-                mouse_x, mouse_y = pygame.mouse.get_pos()
-                bullet_start_pos = (
-                    self.player.rect.centerx, self.player.rect.top)
-                direction = (
-                    mouse_x - bullet_start_pos[0], mouse_y - bullet_start_pos[1])
-                bullet = Bullet(bullet_start_pos, direction)
-                self.bullets.append(bullet)
-                self.player.bullets -= 1
-                
+            if not self.shoot_cooldown:  # Проверяем, можем ли мы стрелять
+                    if self.player.bullets > 0:
+                        mouse_x, mouse_y = pygame.mouse.get_pos()
+                        bullet_start_pos = (self.player.rect.centerx, 
+                                            self.player.rect.top)
+                        direction = (mouse_x - bullet_start_pos[0], 
+                                     mouse_y - bullet_start_pos[1])
+                        bullet = Bullet(bullet_start_pos, direction)
+                        self.bullets.append(bullet)
+                        self.player.bullets -= 1
+                        
+                        # Устанавливаем флаг временем стрельбы
+                        self.shoot_cooldown = True
 
-    def update(self):
+        # Если левая кнопка мыши не нажата, сбрасываем флаг
+        if not pygame.mouse.get_pressed()[0]:
+            self.shoot_cooldown = False
+      
+      
+    # Обновление и проверка всей информации в процессе игры 
+    def update(self) -> None:
+        
         # Обновление пуль игрока
         for bullet in self.bullets[:]:
             bullet.move()
@@ -119,18 +166,25 @@ class Game:
                 self.enemy_bullets.remove(enemy_bullet)
                 if self.player.health <= 0:
                     self.game_over()
+                    
         # Спавн врагов
         current_time = pygame.time.get_ticks()
-        if len(self.enemies) < self.enemy_count:
+        if len(self.enemies) < self.enemy_count and self.spawn_enabled:
             if current_time - self.enemy_spawn_timer > 1000:  # Спавн врагов каждые 1 секунду
                 self.enemies.append(Enemy())
+                self.current_enemies -= 1
                 self.enemy_spawn_timer = current_time
-
+                if self.current_enemies == 0:
+                    self.spawn_enabled = False
+                    
         # Проверка на конец волны
-        if len(self.enemies) == 0 and self.enemy_count > 0:
+        if len(self.enemies) == 0 and self.score > 0 and current_time - self.last_wave_increasing > 5000:
             self.enemy_count += ENEMY_INCREASE_PER_WAVE  # Увеличиваем количество врагов
             print(f"Next wave! Total enemies: {self.enemy_count}")
-
+            self.spawn_enabled = True
+            self.last_wave_increasing = current_time
+            self.current_enemies = self.enemy_count
+            
         # Спавн патронов
         if current_time - self.ammo_spawn_timer > AMMO_SPAWN_RATE:
             self.ammo.append(Ammo())
@@ -142,6 +196,8 @@ class Game:
                 self.player.bullets += 100  # Игрок получает 10 патронов
                 self.ammo.remove(ammo)
 
+
+    # Отображение на экране
     def render(self):
         self.screen.fill(WHITE)
         pygame.draw.rect(self.screen, GREEN, self.player.rect)  # Игрок
