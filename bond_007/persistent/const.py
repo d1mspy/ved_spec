@@ -8,9 +8,10 @@ INITIAL_BULLETS = 200
 ENEMY_HIT_DAMAGE = 10
 BULLET_HIT_DAMAGE = 10
 AMMO_SPAWN_RATE = 20000  # 20 секунд
-INITIAL_ENEMY_COUNT = 7  # Начальное количество врагов
+INITIAL_ENEMY_COUNT = 3  # Начальное количество врагов
 ENEMY_INCREASE_PER_WAVE = 2  # Увеличение врагов за волну
-HITS_TO_KILL_ENEMY = 4  # Количество попаданий для уничтожения врага
+HITS_TO_KILL_ENEMY = 2  # Количество попаданий для уничтожения врага
+MIN_SPAWN_DISTANCE = 50
 
 # Цвета
 BLACK = (0 , 0 , 0)

@@ -24,11 +24,15 @@ class Player:
 
 # Класс врага
 class Enemy:
-    def __init__(self):
+    def __init__(self, inc):
+        self.size = 30
+        self.increasing = inc
         self.rect = pygame.Rect(random.randint(
-            0, WIDTH - 35), random.randint(0, HEIGHT - 35), 35, 35)
-        self.health = HITS_TO_KILL_ENEMY  # Количество попаданий для уничтожения врага
+            0, WIDTH - self.size - 5*self.increasing), random.randint(0, HEIGHT - self.size - 5*self.increasing), self.size+5*self.increasing, self.size+5*self.increasing)
+        self.health = HITS_TO_KILL_ENEMY + self.increasing  # Количество попаданий для уничтожения врага
+        self.max_health = HITS_TO_KILL_ENEMY + self.increasing
         self.last_shot_time = 0
+
 
     def move(self, player):
         if self.rect.x < player.rect.x:
@@ -52,8 +56,8 @@ class Enemy:
         # Полоса здоровья врага
         health_bar_width = 30
         health_bar_height = 5
-        health_bar_pos = (self.rect.x, self.rect.y - 10)
-        health_percentage = self.health / HITS_TO_KILL_ENEMY
+        health_bar_pos = (self.rect.x + ((self.size + 5*self.increasing) - health_bar_width)/2, self.rect.y - 10)
+        health_percentage = self.health / self.max_health
         health_color = GREEN if self.health > 0 else RED
         pygame.draw.rect(screen, RED, (
             # Фон полосы здоровья
