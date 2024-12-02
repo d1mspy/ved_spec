@@ -30,12 +30,13 @@ class Game:
         self.enemy_count = INITIAL_ENEMY_COUNT # количество врагов на текущую волну
         self.current_enemies = INITIAL_ENEMY_COUNT # атрибут для подсчета уже заспавненных врагов в рамках текущей волны
         
-        # атрибут для смены волн
+        # атрибуты для смены волн
         self.last_increase_time = 0
-        
-        # атрибуты для увеличения размера и здоровья врагов
-        self.increase_interval = 5000 
         self.last_wave_increasing = 0
+        
+        # интервал увеличения размера и здоровья врагов
+        self.increase_interval = 10000
+        self.increasing = 0
         
         # булевые атрибуты для реализации стрельбы и спавна врагов
         self.shoot_enabled = False
@@ -62,8 +63,7 @@ class Game:
     def increase_enemy_size(self) -> None:
         current_time = pygame.time.get_ticks()
         if current_time - self.last_increase_time > self.increase_interval:
-            for enemy in self.enemies:
-                enemy.increasing += 1
+            self.increasing += 1
             self.last_increase_time = current_time
             print("size increased")
     
@@ -171,11 +171,13 @@ class Game:
         current_time = pygame.time.get_ticks()
         if len(self.enemies) < self.enemy_count and self.spawn_enabled:
             if current_time - self.enemy_spawn_timer > 1000:  # Спавн врагов каждые 1 секунду
-                self.enemies.append(Enemy())
-                self.current_enemies -= 1
-                self.enemy_spawn_timer = current_time
-                if self.current_enemies == 0:
-                    self.spawn_enabled = False
+                enemy = Enemy(self.increasing)
+                if MIN_SPAWN_DISTANCE <= ((self.player.rect.y - enemy.rect.x)**2 + (self.player.rect.y - enemy.rect.y)**2)**(1/2):
+                    self.enemies.append(enemy)
+                    self.current_enemies -= 1
+                    self.enemy_spawn_timer = current_time
+                    if self.current_enemies == 0:
+                        self.spawn_enabled = False
                     
         # Проверка на конец волны
         if len(self.enemies) == 0 and self.score > 0 and current_time - self.last_wave_increasing > 5000:
