@@ -1,4 +1,4 @@
-import pygame
+import pygame # type: ignore
 from persistent.const import *
 from persistent.game_class import Player, Enemy, Bullet, Ammo
 from db.connect import save_score

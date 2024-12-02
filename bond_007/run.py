@@ -1,4 +1,4 @@
-import pygame
+import pygame # type: ignore
 from game import Game
 from db.connect import check_table
 
