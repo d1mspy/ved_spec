@@ -71,7 +71,7 @@ class Game:
     
     
     # запуск
-     def run(self) -> None:
+    def run(self) -> None:
         while self.running:
             self.increase_enemy_size( )
             self.handle_events()

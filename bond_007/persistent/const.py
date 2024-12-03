@@ -11,7 +11,7 @@ AMMO_SPAWN_RATE = 20000  # 20 секунд
 INITIAL_ENEMY_COUNT = 3  # Начальное количество врагов
 ENEMY_INCREASE_PER_WAVE = 2  # Увеличение врагов за волну
 HITS_TO_KILL_ENEMY = 2  # Количество попаданий для уничтожения врага
-MIN_SPAWN_DISTANCE = 50
+MIN_SPAWN_DISTANCE = 70
 
 # Цвета
 BLACK = (0 , 0 , 0)
