@@ -184,6 +184,8 @@ class Game:
                     self.enemy_spawn_timer = current_time
                     if self.current_enemies == 0:
                         self.spawn_enabled = False
+                else:
+                    print('cancel spawn')
                     
         # Проверка на конец волны
         if len(self.enemies) == 0 and self.score > 0 and current_time - self.last_wave_increasing > 5000:
