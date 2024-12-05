@@ -6,7 +6,7 @@ from persistent.game_class import Player, Enemy, Bullet, Ammo
 from game import Game
 
 
-def interface() -> None:      
+def interface() -> None:
     app = QtWidgets.QApplication(sys.argv)
     window = MainWindow()
     window.show()
@@ -44,8 +44,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def start_game(self):
         # Логика для запуска новой игры
-        self.game = Game()  # Замените текущим подходом для инициализации игры
-        self.game.run()  # Запуск метода run из вашего класса Game
+        username, ok = QtWidgets.QInputDialog.getText(
+            self, "Имя игрока", "Введите ваше имя:")
+        if ok and username.strip():
+            game = Game(username.strip())
+            game.run()
+        else:
+            QtWidgets.QMessageBox.warning(
+                self, "Ошибка", "Имя не может быть пустым!")
 
     def resume_game(self):
         # Логика для возобновления игры

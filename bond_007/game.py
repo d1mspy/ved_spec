@@ -8,13 +8,13 @@ from db.connect import save_score
 
 
 class Game:
-    def __init__(self):
+    def __init__(self, username: str):
         pygame.init()
         
         self.running = True
-        self.game_over = False
         self.score_is_writed = False
         self.paused = False
+        self.username = username
         
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption("Shooter Game")
@@ -36,10 +36,13 @@ class Game:
         # атрибуты для смены волн
         self.last_increase_time = 0
         self.last_wave_increasing = 0
+        self.wave = 1
         
-        # интервал увеличения размера и здоровья врагов
-        self.increase_interval = 10000
+        # увеличение размера и здоровья врагов
+        self.increase_enabled = True
         self.increasing = 0
+        self.last_enemy_increasing = 0
+    
         
         # булевые атрибуты для реализации стрельбы и спавна врагов
         self.shoot_enabled = False
@@ -58,20 +61,20 @@ class Game:
     # конец игры и запись очков в бд
     def game_over(self) -> None:
         print("Game Over! Final Score:", self.score)
-        save_score(self.score)
+        save_score(self.username, self.score)
         self.running = False
 
     # увеличение размера врагов по мере продвижения
     def increase_enemy_size(self) -> None:
-        current_time = pygame.time.get_ticks()
-        if current_time - self.last_increase_time > self.increase_interval:
+        if self.wave in INCREASING_WAVES and self.wave != self.last_enemy_increasing:
             self.increasing += 1
-            self.last_increase_time = current_time
+            self.last_enemy_increasing = self.wave
             print("size increased")
     
     
     # запуск
     def run(self) -> None:
+        print(f"Game started! Wave 1, total enemies: {INITIAL_ENEMY_COUNT}")
         while self.running:
             self.increase_enemy_size( )
             self.handle_events()
@@ -93,16 +96,16 @@ class Game:
         # Движение игрока (стрелки или WASD)
         keys = pygame.key.get_pressed()
         if keys[pygame.K_w] or keys[pygame.K_UP]:
-            self.player.move('UP')
+            self.player.move('UP', self.paused)
         if keys[pygame.K_s] or keys[pygame.K_DOWN]:
-            self.player.move('DOWN')
+            self.player.move('DOWN', self.paused)
         if keys[pygame.K_a] or keys[pygame.K_LEFT]:
-            self.player.move('LEFT')
+            self.player.move('LEFT', self.paused)
         if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
-            self.player.move('RIGHT')
+            self.player.move('RIGHT', self.paused)
 
         # Стрельба
-        if pygame.mouse.get_pressed()[0]:
+        if pygame.mouse.get_pressed()[0] and not self.paused:
             if not self.shoot_cooldown:  # Проверяем, можем ли мы стрелять
                     if self.player.bullets > 0:
                         mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -176,7 +179,7 @@ class Game:
         # Спавн врагов
         current_time = pygame.time.get_ticks()
         if len(self.enemies) < self.enemy_count and self.spawn_enabled:
-            if current_time - self.enemy_spawn_timer > 1000:  # Спавн врагов каждые 1 секунду
+            if current_time - self.enemy_spawn_timer > 1500:  # Спавн врагов каждые 1.5 секунды
                 enemy = Enemy(self.increasing)
                 if MIN_SPAWN_DISTANCE <= ((self.player.rect.y - enemy.rect.x)**2 + (self.player.rect.y - enemy.rect.y)**2)**(1/2):
                     self.enemies.append(enemy)
@@ -190,7 +193,9 @@ class Game:
         # Проверка на конец волны
         if len(self.enemies) == 0 and self.score > 0 and current_time - self.last_wave_increasing > 5000:
             self.enemy_count += ENEMY_INCREASE_PER_WAVE  # Увеличиваем количество врагов
-            print(f"Next wave! Total enemies: {self.enemy_count}")
+            self.wave += 1
+            self.increase_enemy_size()
+            print(f"Wave {self.wave}, total enemies: {self.enemy_count}")
             self.spawn_enabled = True
             self.last_wave_increasing = current_time
             self.current_enemies = self.enemy_count
@@ -203,7 +208,7 @@ class Game:
         # Проверка на столкновения патронов с игроком
         for ammo in self.ammo[:]:
             if ammo.rect.colliderect(self.player.rect):
-                self.player.bullets += 100  # Игрок получает 10 патронов
+                self.player.bullets += 100  # Игрок получает 100 патронов
                 self.ammo.remove(ammo)
 
 

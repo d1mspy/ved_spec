@@ -11,15 +11,16 @@ class Player:
         self.health = MAX_HEALTH
         self.bullets = INITIAL_BULLETS
 
-    def move(self, direction):
-        if direction == 'UP' and self.rect.top > 0:
-            self.rect.y -= PLAYER_SPEED
-        if direction == 'DOWN' and self.rect.bottom < HEIGHT:
-            self.rect.y += PLAYER_SPEED
-        if direction == 'LEFT' and self.rect.left > 0:
-            self.rect.x -= PLAYER_SPEED
-        if direction == 'RIGHT' and self.rect.right < WIDTH:
-            self.rect.x += PLAYER_SPEED
+    def move(self, direction, pause):
+        if not pause:
+            if direction == 'UP' and self.rect.top > 0:
+                self.rect.y -= PLAYER_SPEED
+            if direction == 'DOWN' and self.rect.bottom < HEIGHT:
+                self.rect.y += PLAYER_SPEED
+            if direction == 'LEFT' and self.rect.left > 0:
+                self.rect.x -= PLAYER_SPEED
+            if direction == 'RIGHT' and self.rect.right < WIDTH:
+                self.rect.x += PLAYER_SPEED
 
 
 # Класс врага

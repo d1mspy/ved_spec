@@ -12,6 +12,7 @@ INITIAL_ENEMY_COUNT = 3  # Начальное количество врагов
 ENEMY_INCREASE_PER_WAVE = 2  # Увеличение врагов за волну
 HITS_TO_KILL_ENEMY = 2  # Количество попаданий для уничтожения врага
 MIN_SPAWN_DISTANCE = 150
+INCREASING_WAVES = [3, 5, 7, 10, 14, 17, 20]
 
 # Цвета
 BLACK = (0 , 0 , 0)
