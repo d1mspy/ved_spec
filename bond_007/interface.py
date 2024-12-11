@@ -1,9 +1,10 @@
 import sys
 import sqlite3
 from PyQt5 import QtWidgets, QtGui
-from PyQt5.QtWidgets import QMessageBox, QLabel, QVBoxLayout, QCheckBox
+from PyQt5.QtWidgets import QMessageBox, QLabel, QVBoxLayout, QCheckBox, QTableWidget, QTableWidgetItem
 from PyQt5.QtGui import QFont, QPixmap
 from game import Game
+from db.connect import get_leaders
 
 
 def interface() -> None:
@@ -20,13 +21,15 @@ class MainWindow(QtWidgets.QMainWindow):
         # Установка заголовка окна
         self.setWindowTitle("Shooter Game")
         self.setGeometry(100, 100, 800, 600)  # (x, y, width, height)
-        self.setWindowIcon(QtGui.QIcon("path/to/icon.png")
-                           )  # Укажите путь к иконке
 
         # Создаем центральный виджет
         self.central_widget = QtWidgets.QWidget(self)
         self.setCentralWidget(self.central_widget)
         self.layout = QVBoxLayout(self.central_widget)
+
+        # Создаем горизонтальный лэйаут для размещения таблицы внизу
+        self.bottom_layout = QtWidgets.QHBoxLayout()
+        self.layout.addLayout(self.bottom_layout)
 
         self.label = QLabel(self)
         pixmap = QPixmap('bond_007\costyl.jpg')
@@ -63,8 +66,34 @@ class MainWindow(QtWidgets.QMainWindow):
         self.exit_button.setFont(font)
         self.exit_button.clicked.connect(self.close)
 
+        # Создаем таблицу и настраиваем размеры
+        self.table = QTableWidget(self.central_widget)
+        # Устанавливаем фиксированный размер таблицы
+        self.table.setFixedSize(273, 220)
+        self.layout.addWidget(self.table)
+
+        # Настраиваем таблицу: 5 строк, 2 столбца
+        self.table.setRowCount(5)
+        self.table.setColumnCount(2)
+        self.table.setHorizontalHeaderLabels(["Игрок", "Очки"])
+
+        data = get_leaders()
+        # Пример данных для отображения
+        leaderboard_data = [
+            (data[0][0], data[0][1]),
+            (data[1][0], data[1][1]),
+            (data[2][0], data[2][1]),
+            (data[3][0], data[3][1]),
+            (data[4][0], data[4][1]),
+        ]
+
+        # Заполняем таблицу данными
+        for row_num, (player, score) in enumerate(leaderboard_data):
+            self.table.setItem(row_num, 0, QTableWidgetItem(player))
+            self.table.setItem(row_num, 1, QTableWidgetItem(str(score)))
+
+    # запуск игры
     def start_game(self):
-        # Логика для запуска новой игры
         username, ok = QtWidgets.QInputDialog.getText(
             self, "Имя игрока", "Введите ваше имя:")
         if ok and username.strip():

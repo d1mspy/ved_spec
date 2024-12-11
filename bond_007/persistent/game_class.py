@@ -25,7 +25,7 @@ class Player:
 
 # Класс врага
 class Enemy:
-    def __init__(self, inc, d1):
+    def __init__(self, inc: int, d1: bool):
         self.size = 30
         self.increasing = inc
         final_size = self.size + 5*self.increasing
@@ -43,16 +43,16 @@ class Enemy:
         self.max_health = HITS_TO_KILL_ENEMY + self.increasing
         self.last_shot_time = 0
 
-    def move(self, player):
+    def move(self, player: Player):
         dx = player.rect.centerx - self.rect.centerx
         dy = player.rect.centery - self.rect.centery
         length = max(1, (dx**2 + dy**2)**0.5)
         self.rect.move_ip(dx / length * ENEMY_SPEED, dy / length * ENEMY_SPEED)
 
-    def shoot(self, player):
+    def shoot(self, player: Player):
         return Bullet((self.rect.centerx, self.rect.centery), self.get_direction(player))
 
-    def get_direction(self, player):
+    def get_direction(self, player: Player):
         direction = (player.rect.centerx - self.rect.centerx,
                      player.rect.centery - self.rect.centery)
         return direction

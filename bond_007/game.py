@@ -9,42 +9,42 @@ class Game:
     def __init__(self, username: str, d1_on: bool):
         pygame.init()
 
-        self.running = True
-        self.score_is_writed = False
-        self.paused = False
-        self.username = username
+        self.running: bool = True
+        self.score_is_writed: bool = False
+        self.paused: bool  = False
+        self.username: bool = username
 
-        self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
+        self.screen: pygame.Surface = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption("Shooter Game")
-        self.clock = pygame.time.Clock()
+        self.clock: pygame.time.Clock = pygame.time.Clock()
 
         # игрок и очки
-        self.player = Player()
-        self.score = 0
+        self.player: Player = Player()
+        self.score: int = 0
 
         # списки для врагов, патронов и пуль
-        self.enemies = []
-        self.bullets = []
-        self.ammo = []
-        self.enemy_bullets = []
+        self.enemies: list = []
+        self.bullets: list = []
+        self.ammo: list = []
+        self.enemy_bullets: list = []
 
-        self.enemy_count = INITIAL_ENEMY_COUNT  # количество врагов на текущую волну
+        self.enemy_count: int = INITIAL_ENEMY_COUNT  # количество врагов на текущую волну
         # атрибут для подсчета уже заспавненных врагов в рамках текущей волны
-        self.current_enemies = INITIAL_ENEMY_COUNT
+        self.current_enemies: int = INITIAL_ENEMY_COUNT
 
         # атрибуты для смены волн
-        self.last_increase_time = 0
-        self.last_wave_increasing = 0
-        self.wave = 1
+        self.last_increase_time: int = 0
+        self.last_wave_increasing: int = 0
+        self.wave: int = 1
 
         # увеличение размера и здоровья врагов
-        self.increase_enabled = True
-        self.increasing = 0
-        self.last_enemy_increasing = 0
+        self.increase_enabled: bool = True
+        self.increasing: int = 0
+        self.last_enemy_increasing: int = 0
 
         # булевые атрибуты для реализации стрельбы и спавна врагов
-        self.shoot_enabled = False
-        self.spawn_enabled = True
+        self.shoot_enabled: bool = False
+        self.spawn_enabled: bool = True
 
         # Инициализация и воспроизведение музыки
         pygame.mixer.init()
@@ -52,21 +52,21 @@ class Game:
         pygame.mixer.music.play(-1)
 
         # Таймер для спавна врагов и патронов
-        self.enemy_spawn_timer = pygame.time.get_ticks()
-        self.ammo_spawn_timer = pygame.time.get_ticks()
+        self.enemy_spawn_timer: int = pygame.time.get_ticks()
+        self.ammo_spawn_timer: int = pygame.time.get_ticks()
 
         # Чит-коды
-        self.infinite_ammo = d1_on
-        self.infinite_health = False
-        self.multi_shot = False
+        self.infinite_ammo: bool = d1_on
+        self.infinite_health: bool = False
+        self.multi_shot: bool = False
 
         # 1D режим
-        self.one_dimension = d1_on
+        self.one_dimension: bool = d1_on
         
         if d1_on:
-            self.spawn_cooldown = 900
+            self.spawn_cooldown: int = 900
         else:
-            self.spawn_cooldown = 1500
+            self.spawn_cooldown: int = 1500
 
     # конец игры и запись очков в бд
     def game_over(self) -> None:
@@ -115,7 +115,7 @@ class Game:
                     print("Multi-Shot:", self.multi_shot)
 
         # Движение игрока (стрелки или WASD)
-        keys = pygame.key.get_pressed()
+        keys: pygame.key.ScancodeWrapper = pygame.key.get_pressed()
         if keys[pygame.K_w] or keys[pygame.K_UP]:
             self.player.move('UP', self.paused, self.one_dimension)
         if keys[pygame.K_s] or keys[pygame.K_DOWN]:
@@ -141,7 +141,7 @@ class Game:
 
                     # Дополнительные пули в стороны
                     if self.multi_shot:
-                        angles = [-30, -20, -15, -10, -5, 5, 10, 15,
+                        angles = [-30, -18, -15, -10, -4, 5, 9, 15,
                                   20, 30]  # Углы отклонения в градусах
                         for angle in angles:
                             rotated_direction = self.rotate_vector(
@@ -200,7 +200,7 @@ class Game:
                     self.game_over()
 
             # Стрельба врагов
-            current_time = pygame.time.get_ticks()
+            current_time: int = pygame.time.get_ticks()
             if not self.one_dimension and current_time - enemy.last_shot_time > 2000:  # Враги стреляют каждые 2 секунды
                 # Передаем игрока для корректного направления пули
                 bullet = enemy.shoot(self.player)

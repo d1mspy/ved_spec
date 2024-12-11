@@ -32,3 +32,18 @@ def save_score(username: str, score: int) -> None:
 # создание уникального id
 def uuid_as_str() -> str:
     return str(uuid.uuid4())
+
+
+# выбор 5 лучших игроков
+def get_leaders() -> list:
+    c.execute('''
+              SELECT username, player_score
+              FROM score
+              ORDER BY player_score DESC
+              LIMIT 5;
+              ''')
+    conn.commit()
+    
+    results = c.fetchall()
+    
+    return results
