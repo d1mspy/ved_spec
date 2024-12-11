@@ -12,7 +12,8 @@ class Game:
         self.running: bool = True
         self.score_is_writed: bool = False
         self.paused: bool  = False
-        self.username: bool = username
+        
+        self.username: str = username
 
         self.screen: pygame.Surface = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption("Shooter Game")
