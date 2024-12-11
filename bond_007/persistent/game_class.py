@@ -1,4 +1,4 @@
-import pygame # type: ignore
+import pygame  # type: ignore
 import math
 import random
 from persistent.const import *
@@ -7,15 +7,15 @@ from persistent.const import *
 # Класс игрока
 class Player:
     def __init__(self):
-        self.rect = pygame.Rect(WIDTH // 2, HEIGHT // 2, 50, 50)
+        self.rect = pygame.Rect(WIDTH // 2, HEIGHT // 2 - 25, 50, 50)
         self.health = MAX_HEALTH
         self.bullets = INITIAL_BULLETS
 
-    def move(self, direction, pause):
+    def move(self, direction, pause, d1):
         if not pause:
-            if direction == 'UP' and self.rect.top > 0:
+            if direction == 'UP' and self.rect.top > 0 and not d1:
                 self.rect.y -= PLAYER_SPEED
-            if direction == 'DOWN' and self.rect.bottom < HEIGHT:
+            if direction == 'DOWN' and self.rect.bottom < HEIGHT and not d1:
                 self.rect.y += PLAYER_SPEED
             if direction == 'LEFT' and self.rect.left > 0:
                 self.rect.x -= PLAYER_SPEED
@@ -25,25 +25,29 @@ class Player:
 
 # Класс врага
 class Enemy:
-    def __init__(self, inc):
+    def __init__(self, inc, d1):
         self.size = 30
         self.increasing = inc
-        self.rect = pygame.Rect(random.randint(
-            0, WIDTH - self.size - 5*self.increasing), random.randint(0, HEIGHT - self.size - 5*self.increasing), self.size+5*self.increasing, self.size+5*self.increasing)
-        self.health = HITS_TO_KILL_ENEMY + self.increasing  # Количество попаданий для уничтожения врага
+        final_size = self.size + 5*self.increasing
+        if not d1:
+            self.rect = pygame.Rect(random.randint(
+                0, WIDTH - final_size), random.randint(0, HEIGHT - final_size), final_size, final_size)
+        elif random.choice([True, False]):
+            self.rect = pygame.Rect(random.randint(
+                0, 70), random.randint(WALLS_HEIGHT, 800 - WALLS_HEIGHT - final_size), final_size, final_size)
+        else:
+            self.rect = pygame.Rect(random.randint(
+                730, WIDTH-final_size), random.randint(WALLS_HEIGHT, 800 - WALLS_HEIGHT - final_size), final_size, final_size)
+        # Количество попаданий для уничтожения врага
+        self.health = HITS_TO_KILL_ENEMY + self.increasing
         self.max_health = HITS_TO_KILL_ENEMY + self.increasing
         self.last_shot_time = 0
 
-
     def move(self, player):
-        if self.rect.x < player.rect.x:
-            self.rect.x += ENEMY_SPEED
-        elif self.rect.x > player.rect.x:
-            self.rect.x -= ENEMY_SPEED
-        if self.rect.y < player.rect.y:
-            self.rect.y += ENEMY_SPEED
-        elif self.rect.y > player.rect.y:
-            self.rect.y -= ENEMY_SPEED
+        dx = player.rect.centerx - self.rect.centerx
+        dy = player.rect.centery - self.rect.centery
+        length = max(1, (dx**2 + dy**2)**0.5)
+        self.rect.move_ip(dx / length * ENEMY_SPEED, dy / length * ENEMY_SPEED)
 
     def shoot(self, player):
         return Bullet((self.rect.centerx, self.rect.centery), self.get_direction(player))
@@ -57,7 +61,8 @@ class Enemy:
         # Полоса здоровья врага
         health_bar_width = 30
         health_bar_height = 5
-        health_bar_pos = (self.rect.x + ((self.size + 5*self.increasing) - health_bar_width)/2, self.rect.y - 10)
+        health_bar_pos = (self.rect.x + ((self.size + 5 *
+                          self.increasing) - health_bar_width)/2, self.rect.y - 10)
         health_percentage = self.health / self.max_health
         health_color = GREEN if self.health > 0 else RED
         pygame.draw.rect(screen, RED, (

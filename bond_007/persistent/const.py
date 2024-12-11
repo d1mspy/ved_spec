@@ -1,7 +1,7 @@
 # Константы
-WIDTH , HEIGHT = 1000 , 800
+WIDTH, HEIGHT = 1000, 800
 PLAYER_SPEED = 5
-ENEMY_SPEED = 2
+ENEMY_SPEED = 3.25
 BULLET_SPEED = 10
 MAX_HEALTH = 100
 INITIAL_BULLETS = 200
@@ -13,10 +13,12 @@ ENEMY_INCREASE_PER_WAVE = 2  # Увеличение врагов за волну
 HITS_TO_KILL_ENEMY = 2  # Количество попаданий для уничтожения врага
 MIN_SPAWN_DISTANCE = 150
 INCREASING_WAVES = [3, 5, 7, 10, 14, 17, 20]
+WALLS_HEIGHT = 375
 
 # Цвета
-BLACK = (0 , 0 , 0)
-WHITE = (255 , 255 , 255)
-RED = (255 , 0 , 0)
-GREEN = (0 , 255 , 0)
-BLUE = (0 , 0 , 255)
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
+GRAY = (169, 169, 169)

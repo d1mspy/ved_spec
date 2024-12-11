@@ -5,9 +5,8 @@ import uuid
 conn = sqlite3.connect('sqlite.db')
 c = conn.cursor()
 
+
 # проверка что таблица существует и ее создание если не существует
-
-
 def check_table() -> None:
     c.execute('''
         CREATE TABLE IF NOT EXISTS score(
@@ -18,9 +17,9 @@ def check_table() -> None:
     ''')
     conn.commit()
 
+
+
 # сохранение очков в бд
-
-
 def save_score(username: str, score: int) -> None:
     c.execute('''
               INSERT INTO score(id, username, player_score) VALUES(?, ?, ?)
@@ -28,8 +27,8 @@ def save_score(username: str, score: int) -> None:
               (uuid_as_str(), username, score))
     conn.commit()
 
+
+
 # создание уникального id
-
-
 def uuid_as_str() -> str:
     return str(uuid.uuid4())
